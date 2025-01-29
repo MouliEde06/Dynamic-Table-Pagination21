@@ -1,0 +1,196 @@
+
+let namesData = [];
+async function fetchNamesData() {
+  try {
+    let response = await fetch('https://mocki.io/v1/a0ecd889-258d-4d6a-ad43-d3cf391be869');
+    let jsonData = await response.json();
+    namesData = jsonData.data;
+    useNamesData();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+function useNamesData() {
+  let data = namesData
+  const data1 = Object.keys(data[0]);
+  const select2 = document.getElementById('numberDropdown')
+  const rows = document.getElementById('rows')
+  rows.addEventListener('change', minato)
+  select2.addEventListener('change', minato)
+  document.getElementById('numberDropdown').addEventListener('change', minato);
+  document.getElementById('rows').addEventListener('change', minato);
+
+  function minato() {
+    let select1 = select2.value
+    const rowsPerPage = Number(rows.value)
+    if (!select1 && !rowsPerPage) {
+      select1 = "select"
+      rowsPerPage = 10
+    }
+    if (select1 === "select") {
+      let currentPage = 1;
+      function displayTable(page) {
+        const startIndex = (page - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const slicedData = data.slice(startIndex, endIndex);
+        let tableHTML = "<table><thead><tr>";
+        data1.forEach(function (header) {
+          tableHTML += `<th>${header}</th>`;
+        });
+        tableHTML += "<th>Status</th></tr></thead><tbody>";
+        slicedData.forEach(rowData => {
+          let prob = 0;
+          tableHTML += "<tr>";
+          for (let key in rowData) {
+            tableHTML += `<td>${rowData[key]}</td>`;
+            prob = rowData.probability
+          }
+          if (prob < 0.85) {
+            tableHTML += '<td><i class="bi bi-clock"></i></i></td></tr>';
+          }
+          else if (prob < 0.90 && prob > 0.85) {
+            tableHTML += '<td><i class="bi bi-arrow-clockwise"></i></td></tr>';
+          }
+          else if (prob > 0.90 && prob < 0.95) {
+            tableHTML += '<td><i class="bi bi-clock-history"></i></i></td></tr>';
+          }
+          else {
+            tableHTML += '<td><i class="bi bi-check-circle"></i></td></tr>';
+          }
+        });
+        tableHTML += "</tbody></table>";
+        document.getElementById("demo").innerHTML = tableHTML;
+        console.log(3);
+
+        updatePagination(page);
+      }
+      document.getElementById("search").addEventListener("change", function () {
+        searchpage(1)
+      });
+      function searchpage(page) {
+        const startIndex = (page - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const searchValue = document.getElementById("search").value.toLowerCase();
+        const results = data.filter((item) => {
+          return item.name.toLowerCase().includes(searchValue) ||
+            item.count.toString().toLowerCase().includes(searchValue) ||
+            item.gender.toLowerCase().includes(searchValue) ||
+            item.probability.toString().toLowerCase().includes(searchValue);
+        });
+        const slicedData = results.slice(startIndex, endIndex)
+        if (results.length > 0) {
+          let tableHTML = "<table><thead><tr>";
+
+          data1.forEach(function (header) {
+            tableHTML += `<th>${header}</th>`;
+          });
+          tableHTML += "<th>Status</th></tr></thead><tbody>";
+          slicedData.forEach((rowData) => {
+            let prob = 0;
+            tableHTML += "<tr>";
+            for (let key in rowData) {
+              tableHTML += `<td>${rowData[key]}</td>`;
+              prob = rowData.probability
+            }
+            if (prob < 0.85) {
+              tableHTML += '<td><i class="bi bi-clock"></i></i></td></tr>';
+            }
+            else if (prob < 0.90 && prob > 0.85) {
+              tableHTML += '<td><i class="bi bi-arrow-clockwise"></i></td></tr>';
+            }
+            else if (prob > 0.90 && prob < 0.95) {
+              tableHTML += '<td><i class="bi bi-clock-history"></i></i></td></tr>';
+            }
+            else {
+              tableHTML += '<td><i class="bi bi-check-circle"></i></td></tr>';
+            }
+          });
+
+          tableHTML += "</tbody></table>";
+          document.getElementById("demo").innerHTML = tableHTML;
+        }
+        updatePagination1(page, results.length);
+      }
+      function updatePagination(currentPage) {
+        const pageCount = Math.ceil(data.length / rowsPerPage);
+        const paginationContainer = document.getElementById("pagination");
+        paginationContainer.innerHTML = "";
+        for (let i = 1; i <= pageCount; i++) {
+          const pageLink = document.createElement("a");
+          pageLink.href = "#";
+          pageLink.innerText = i;
+          pageLink.onclick = function () {
+            console.log(i);
+            displayTable(i);
+          };
+          if (i === currentPage) {
+            pageLink.style.fontWeight = "bold";
+          }
+          paginationContainer.appendChild(pageLink);
+          paginationContainer.appendChild(document.createTextNode(" "));
+        }
+      }
+      function updatePagination1(currentPage, datalength) {
+        const pageCount = Math.ceil(datalength / rowsPerPage);
+        const paginationContainer = document.getElementById("pagination");
+        paginationContainer.innerHTML = "";
+        for (let i = 1; i <= pageCount; i++) {
+          const pageLink = document.createElement("a");
+          pageLink.href = "#";
+          pageLink.innerText = i;
+          pageLink.onclick = function () {
+            searchpage(i);
+          };
+          if (i === currentPage) {
+            pageLink.style.fontWeight = "bold";
+          }
+          paginationContainer.appendChild(pageLink);
+          paginationContainer.appendChild(document.createTextNode(" "));
+        }
+      }
+      displayTable(currentPage);
+    }
+    else {
+      let tableHTML = "<table><thead><tr>";
+
+      data1.forEach(function (header) {
+        tableHTML += `<th>${header}</th>`;
+      });
+      tableHTML += "<th>Status</th></tr></thead><tbody>";
+      let prob = 0;
+      tableHTML += "<tr>";
+      let object = data.find(o => o.name === select1);
+      for (key in object) {
+        tableHTML += `<td>${object[key]}</td>`;
+        prob = object.probability
+      }
+      if (prob < 0.85) {
+        tableHTML += '<td><i class="bi bi-clock"></i></i></td></tr>';
+      }
+      else if (prob < 0.90 && prob > 0.85) {
+        tableHTML += '<td><i class="bi bi-arrow-clockwise"></i></td></tr>';
+      }
+      else if (prob > 0.90 && prob < 0.95) {
+        tableHTML += '<td><i class="bi bi-clock-history"></i></i></td></tr>';
+      }
+      else {
+        tableHTML += '<td><i class="bi bi-check-circle"></i></td></tr>';
+      }
+      tableHTML += "</tbody></table>";
+      document.getElementById("demo").innerHTML = tableHTML;
+    }
+  }
+  window.onload = function () {
+    minato();
+  };
+
+}
+
+fetchNamesData();
+
+
+
+
+
+
+
